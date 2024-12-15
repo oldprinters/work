@@ -39,12 +39,12 @@ bool OneLed::setMaxLevel(){
 void OneLed::toggleMax(){
 	levelDim = (levelDim > 250? mediumLevel: 255);
 	// levelDim = mediumLevel;
-	// Serial.print("maxLevel = ");                                                                                                                                                                                                                                                                                                             
-	// Serial.print(maxLevel);
-	// Serial.print(", levelDim = ");
-	// Serial.print(levelDim);
-	// Serial.print(", mediumLevel = ");
-	// Serial.println(mediumLevel);
+	Serial.print("maxLevel = ");                                                                                                                                                                                                                                                                                                             
+	Serial.print(maxLevel);
+	Serial.print(", levelDim = ");
+	Serial.print(levelDim);
+	Serial.print(", mediumLevel = ");
+	Serial.println(mediumLevel);
 	statLed == StatLed::ON;
 }
 //-------------------------------------------------------

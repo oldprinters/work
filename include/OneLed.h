@@ -25,7 +25,7 @@ class OneLed: public Timer
 	StatLed statLed { StatLed::ON };
 	int ledChannel = 0;
 	const int resolution = 8;
-	const int freq = 100;
+	const int freq = 999;
 public:
 	OneLed(int p);
 	OneLed(int p, int ch);

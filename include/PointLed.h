@@ -22,6 +22,7 @@ class PointLed : public OneLed {
         void setMaxLevelAuto(){maxLevelAuto = true;}
         void setMaxLevelOn(){maxLevelOn = true;}
         void setMaxLevelOff(){maxLevelOn = false;}
+        void toogleMaxLevel();  
         void extOn(){timerExt->setTimer();}       //включение подсветки по внешней команде
         bool cycle();
 };

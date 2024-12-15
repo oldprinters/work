@@ -11,13 +11,18 @@ PointLed::PointLed(uint8_t pin, uint8_t ch, ObjectM* arrO, int16_t l, int16_t h,
 bool PointLed::setDist(float& l){
     bool stat{false};
     for(int i=0; i < 3; ++i){
-        int16_t l = arrObj[i].getDist();
-        stat |= (distH >= l) && (distL < l);
+        int16_t dl = arrObj[i].getDist();
+        stat |= (distH >= dl) && (distL < dl);
     }
-    if(stat && (l < thresholdLight) ) {
+    if(stat){// && (l < thresholdLight) ) {
         timer->setTimer();
     }
     return timer->getTimer();
+}
+//-------------------------------------------------------------------
+void PointLed::toogleMaxLevel(){
+    if(maxLevelOn)maxLevelOn = false;
+    else maxLevelOn = true;
 }
 //--------------------------------------------------------------------------------------
 bool PointLed::cycle(){

@@ -16,8 +16,6 @@ int16_t distNew{0};
 bool led1_On{true};
 bool led2_On{true};
 const int PinOutLd{18};
-const int PinOutPres{19};
-const int PinOutDis{5};
 Timer t1(750);
 Timer tLed1(3000);
 Timer tLed2(3000);
@@ -32,26 +30,46 @@ enum class Motion : uint8_t {
 //TODO: добавить кнопку для включения максимального света, повторное нажатие отключает максимальный свет.
 //выход из зоны также отключает максимальный свет.
 //------------------------------------------------------------------------------------------------------------
-const uint8_t ledR{27};
-const uint8_t ledG{26};
-const uint8_t ledB{25};
+const uint8_t ledR{32};
+// const uint8_t ledG{26};
+// const uint8_t ledB{25};
 //-------------------------------------------------------------------------------------------------------
-PointLed led1(ledR, 0, arrObj, 10, 1450, 1000);
-PointLed led2(ledG, 1, arrObj, 1300, 3200, 100);
+PointLed led1(ledR, 0, arrObj, 10, 2450, 1000);
+// PointLed led2(ledG, 1, arrObj, 1300, 3200, 100);
 // PointLed led3(ledB, 2, arrObj, 1900, 3200);
 // PointLed* arrLed[3]{&led1, &led2, &led3};
-PointLed* arrLed[]{&led1, &led2};
+PointLed* arrLed[]{&led1};
+Timer tButt_1(1000);
+const int drDelay{250};
+const int pauseDelay{2000};
+int16_t ft_1_pause{0};
+Timer tDrebezg_1(drDelay);
+Timer tPause_1(pauseDelay);
+//------------------------------------------------------------
+bool statMove{false};
+const int16_t pinBut1{34};
+volatile int16_t buttonStatus_1{0}, ft_1{0}, ft_1_dr{0}, nClickBut_1{0};
+//*********************************************
+void IRAM_ATTR button_interr_1(){ //IRAM_ATTR
+  detachInterrupt(pinBut1);
+  ft_1_dr = 2;
+  if(!ft_1){
+    ft_1 = 3;
+    nClickBut_1 = 1;
+  } else if(ft_1 == 2){
+    nClickBut_1++;
+  }
+}
 //*********************************************************
 void setup(void)
 {
-  pinMode(PinOutPres, OUTPUT);
-  pinMode(PinOutDis, OUTPUT);
-  pinMode(PinOutLd, OUTPUT);
+  pinMode(pinBut1, INPUT);
   Serial.begin(115200); //Feedback over Serial Monitor
   Serial.println(F("=========================== ptr =="));
   // radar.debug(Serial); //Uncomment to show debug information from the library on the Serial Monitor. By default this does not show sensor reads as they are very frequent.
   Serial2.begin (256000, SERIAL_8N1, 16, 17); //UART for monitoring the radar
   delay(500);
+  attachInterrupt(digitalPinToInterrupt(pinBut1), button_interr_1, FALLING);
 }
 //------------------------------------------------------------------------------------------------------------
 void outByte(uint8_t n){
@@ -86,32 +104,49 @@ int getRadar(){
   }
   return i;
 }
-//----------------------------------------------------------
-void controlLed(Motion motion) {
-  switch (motion) {
-    case Motion::None:
-      digitalWrite(PinOutLd, LOW);
-      digitalWrite(PinOutPres, LOW);
-      break;
-    case Motion::Near:
-      digitalWrite(PinOutLd, HIGH);
-      digitalWrite(PinOutPres, LOW);
-      break;
-    case Motion::Far:
-      digitalWrite(PinOutLd, LOW);
-      digitalWrite(PinOutPres, HIGH);
-      break;
-  }
-}
 //********************************************************
 void loop()
 {
   if(tRadar.getTimer()){
     tRadar.setTimer();
     getRadar();
-    // statMove = false;
-    // for(auto& aa: arrLed){
-    //   statMove |= !aa -> setDist(lux);
-    // }
+    float tmp = 0;
+    for(auto& aa: arrLed){
+      aa -> setDist(tmp);
+    }
+  }
+//-------------------------------------------------------------------------------- BUTTONS
+  if(ft_1 == 3){
+    tButt_1.setTimer();
+    ft_1 = 2;
+  }
+  if( ft_1_dr == 2 ){
+    tDrebezg_1.setTimer();
+    ft_1_dr = 1;
+  }
+  if( ( ft_1_dr == 1 ) && tDrebezg_1.getTimer() ){
+    ft_1_dr = 0;
+    attachInterrupt(digitalPinToInterrupt(pinBut1), button_interr_1, FALLING);
+  }
+  if( ( ft_1_pause == 1 ) && tPause_1.getTimer() ){
+    ft_1_pause = 0;
+    attachInterrupt(digitalPinToInterrupt(pinBut1), button_interr_1, FALLING);
+  }
+
+  if(ft_1 == 2 && tButt_1.getTimer()){
+    int16_t i = digitalRead(pinBut1);
+    // Serial.print(i == 0? "Long ": "Short ");
+    // Serial.print("nCount = ");
+    // Serial.println(nClickBut_1);
+    ft_1 = 0;
+    ft_1_pause = 1;
+    tPause_1.setTimer();
+    detachInterrupt(pinBut1);
+    arrLed[0]->toogleMaxLevel();
+    // light_1.clickBut(0, i, nClickBut_1);
+  }
+  arrLed[0]->cycle();
+  for(auto& aa: arrLed){
+    aa -> cycle();
   }
 }
